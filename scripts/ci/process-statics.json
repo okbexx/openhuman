@@ -298,5 +298,15 @@
     "category": "B",
     "reason": "The canonical TinyMCP client table is keyed by the resolved agent directory. Host completion and exact-client eviction preserve the same directory fence across close and purge; no runtime guard is retained in the table.",
     "verification": "mcp/module_client_owner_tests.rs: orphaned_shutdown_cleanup_keeps_a_host_directory_reservation_until_confirmed; mcp/module_client/cleanup_tests.rs: a_pending_close_fences_the_folder_under_another_spelling"
+  },
+  {
+    "file": "crates/openhuman-core/src/cron/handlers.rs",
+    "scope": "",
+    "name": "GUARD",
+    "type": "tokio::sync::Mutex<()>",
+    "count": 1,
+    "category": "A",
+    "reason": "cfg(test) only: serializes cron kind-handler replacement tests across reading, registering and restoring a handler. Holds only a unit value, carries no tenant data and is absent from shipped builds.",
+    "verification": "cron/handlers_tests.rs: a_later_registration_wins_and_dropping_restores_in_order; cron/bus_host_tests.rs: execute_runs_the_registered_handler_and_reports_a_retryable_failure"
   }
 ]
