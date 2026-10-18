@@ -23,6 +23,7 @@ async fn composio_list_toolkits_errors_without_session() {
 
 #[tokio::test]
 async fn composio_list_capabilities_does_not_require_session() {
+    let _module = module_guard().await;
     let tmp = tempfile::tempdir().unwrap();
     let config = test_config(&tmp);
     let outcome = composio_list_capabilities(&config).await.unwrap();
@@ -247,6 +248,10 @@ async fn composio_list_toolkits_via_mock() {
 #[tokio::test]
 async fn composio_list_connections_via_mock_counts_active() {
     let _serialised = module_guard().await;
+    // Keep list_connections from warming another test's divergent cache in a
+    // detached task that can outlive this test's module guard.
+    let _cache = cache_guard_async().await;
+    invalidate_connected_integrations_cache();
     let app = Router::new().route(
         "/agent-integrations/composio/connections",
         get(|| async {
@@ -279,6 +284,10 @@ async fn composio_list_connections_drops_the_module_route_once_signed_out() {
     use tinyconnectors_bus::names::methods;
 
     let _serialised = module_guard().await;
+    // Keep list_connections from warming another test's divergent cache in a
+    // detached task that can outlive this test's module guard.
+    let _cache = cache_guard_async().await;
+    invalidate_connected_integrations_cache();
     let app = Router::new().route(
         "/agent-integrations/composio/connections",
         get(|| async {

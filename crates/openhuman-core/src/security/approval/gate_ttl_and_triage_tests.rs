@@ -2,15 +2,10 @@ use super::*;
 
 #[tokio::test]
 async fn pending_for_thread_tracks_request_under_chat_context_and_clears() {
-    // This test polls a parked task while the full Rust suite runs thousands
-    // of other tests concurrently. Keep its coordination deadline independent
-    // of the short TTL used by the timeout behavior tests.
     let (gate, _dir) = test_gate();
-    let gate = Arc::new(gate);
 
     // Run intercept inside a scoped chat context + matching WebChat
     // origin (as the web channel does in production).
-    let g = gate.clone();
     let ctx = ApprovalChatContext {
         thread_id: "thread-42".into(),
         client_id: "client-1".into(),
@@ -21,33 +16,22 @@ async fn pending_for_thread_tracks_request_under_chat_context_and_clears() {
         client_id: "client-1".into(),
         request_id: Some("req-42".into()),
     };
-    let handle = tokio::spawn(async move {
-        turn_origin::with_origin(
-            origin,
-            g.intercept(
-                &ApprovalTurnContext::chat(ctx),
-                "shell",
-                "run ls",
-                serde_json::json!({}),
-            ),
-        )
-        .await
-    });
+    let turn = ApprovalTurnContext::chat(ctx);
+    let parked = turn_origin::with_origin(
+        origin,
+        gate.intercept(&turn, "shell", "run ls", serde_json::json!({})),
+    );
+    tokio::pin!(parked);
+    assert!(futures::poll!(parked.as_mut()).is_pending());
 
     // While parked, the thread → request mapping is queryable.
-    let mut tries = 0;
-    let request_id = loop {
-        if let Some(r) = gate.pending_for_thread("thread-42") {
-            break r;
-        }
-        tries += 1;
-        assert!(tries < 50, "thread mapping never appeared");
-        tokio::time::sleep(Duration::from_millis(10)).await;
-    };
+    let request_id = gate
+        .pending_for_thread("thread-42")
+        .expect("thread mapping must exist while parked");
 
     // Decide via the mapped request_id (as the chat ingress router will).
     decide_parked(&gate, &request_id, ApprovalDecision::ApproveOnce);
-    assert!(matches!(handle.await.unwrap(), GateOutcome::Allow));
+    assert!(matches!(parked.await, GateOutcome::Allow));
 
     // Mapping is cleared once intercept returns.
     assert!(gate.pending_for_thread("thread-42").is_none());
@@ -64,54 +48,41 @@ async fn pending_for_thread_tracks_request_under_chat_context_and_clears() {
 /// origin already carries, so the card can surface and be approved.
 #[tokio::test]
 async fn webchat_origin_routes_park_when_approval_chat_context_absent() {
-    // See the companion chat-context routing test above: this is a
-    // coordination deadline, not the timeout behavior under test.
     let (gate, _dir) = test_gate();
-    let gate = Arc::new(gate);
 
     // WebChat origin scoped, but NO chat approval context — exactly the
     // async sub-agent spawn state (origin propagated, approval context not).
-    let g = gate.clone();
     let origin = AgentTurnOrigin::WebChat {
         thread_id: "thread-async".into(),
         client_id: "client-async".into(),
         request_id: Some("req-async".into()),
     };
-    let handle = tokio::spawn(async move {
-        turn_origin::with_origin(
-            origin,
-            g.intercept(
-                &ApprovalTurnContext::default(),
-                "cron_add",
-                "schedule daily reminder",
-                serde_json::json!({}),
-            ),
-        )
-        .await
-    });
+    let turn = ApprovalTurnContext::default();
+    let parked = turn_origin::with_origin(
+        origin,
+        gate.intercept(
+            &turn,
+            "cron_add",
+            "schedule daily reminder",
+            serde_json::json!({}),
+        ),
+    );
+    tokio::pin!(parked);
+    assert!(futures::poll!(parked.as_mut()).is_pending());
 
     // The park must be routable via the origin's thread even though the
     // approval task-local was never scoped. `thread_to_request` is inserted
     // only when `chat_thread_id` is `Some`, so this mapping appearing proves
     // the origin fallback supplied it.
-    let mut tries = 0;
-    let request_id = loop {
-        if let Some(r) = gate.pending_for_thread("thread-async") {
-            break r;
-        }
-        tries += 1;
-        assert!(
-            tries < 50,
-            "park must be routable via the WebChat origin's thread when \
-             the chat approval context is absent (#5499)"
-        );
-        tokio::time::sleep(Duration::from_millis(10)).await;
-    };
+    let request_id = gate.pending_for_thread("thread-async").expect(
+        "park must be routable via the WebChat origin's thread when \
+         the chat approval context is absent (#5499)",
+    );
 
     // A decision on that mapped request resolves the park (the card can
     // surface and be approved), instead of silently TTL-denying.
     decide_parked(&gate, &request_id, ApprovalDecision::ApproveOnce);
-    assert!(matches!(handle.await.unwrap(), GateOutcome::Allow));
+    assert!(matches!(parked.await, GateOutcome::Allow));
     assert!(gate.pending_for_thread("thread-async").is_none());
 }
 
@@ -139,12 +110,10 @@ async fn waiter_future_dropped_mid_park_evicts_waiter_clears_routing_and_denies_
         g.intercept(&turn, "shell", "run rm", serde_json::json!({})),
     ));
 
-    // Poll it just long enough to register the waiter, persist the pending
-    // row, and park on the TTL timeout. Nothing resolves it, so the outer
-    // timeout must elapse with the future still pending.
-    let parked = tokio::time::timeout(Duration::from_millis(200), &mut fut).await;
+    // Drive registration and persistence up to the decision wait, then drop
+    // the future below without depending on a wall-clock scheduling window.
     assert!(
-        parked.is_err(),
+        futures::poll!(fut.as_mut()).is_pending(),
         "future should still be parked, not resolved"
     );
 
@@ -192,12 +161,10 @@ async fn waiter_future_dropped_mid_park_evicts_waiter_clears_routing_and_denies_
 // clear the thread→request routing so a later reply is not mis-routed (the
 // codex concern), yet LEAVE the `pending_approvals` row open so a later
 // card-click still resolves it in the DB.
-#[tokio::test]
+#[tokio::test(start_paused = true)]
 async fn intercept_audited_bounded_abandons_park_and_leaves_row_pending() {
     let (gate, _dir) = test_gate();
-    let gate = Arc::new(gate);
 
-    let g = gate.clone();
     let ctx = ApprovalChatContext {
         thread_id: "thread-bound".into(),
         client_id: "client-1".into(),
@@ -210,34 +177,28 @@ async fn intercept_audited_bounded_abandons_park_and_leaves_row_pending() {
     };
     // 100ms caller bound — far below the gate TTL — so the bound is what
     // elapses, not the gate's own timeout.
-    let handle = tokio::spawn(async move {
-        turn_origin::with_origin(
-            origin,
-            g.intercept_audited_bounded(
-                &ApprovalTurnContext::chat(ctx),
-                "shell",
-                "run ls",
-                serde_json::json!({}),
-                Some(Duration::from_millis(100)),
-            ),
-        )
-        .await
-    });
+    let turn = ApprovalTurnContext::chat(ctx);
+    let parked = turn_origin::with_origin(
+        origin,
+        gate.intercept_audited_bounded(
+            &turn,
+            "shell",
+            "run ls",
+            serde_json::json!({}),
+            Some(Duration::from_millis(100)),
+        ),
+    );
+    tokio::pin!(parked);
+    assert!(futures::poll!(parked.as_mut()).is_pending());
 
     // While parked, the thread → request mapping is queryable.
-    let mut tries = 0;
-    let request_id = loop {
-        if let Some(r) = gate.pending_for_thread("thread-bound") {
-            break r;
-        }
-        tries += 1;
-        assert!(tries < 50, "thread mapping never appeared");
-        tokio::time::sleep(Duration::from_millis(5)).await;
-    };
+    let request_id = gate
+        .pending_for_thread("thread-bound")
+        .expect("thread mapping must exist while parked");
 
     // The bound elapses → `None`, so the caller renders its own fast path
     // instead of the park resolving to a Deny.
-    let resolved = handle.await.unwrap();
+    let resolved = parked.await;
     assert!(
         resolved.is_none(),
         "caller park bound must surface as None, not a resolved outcome"

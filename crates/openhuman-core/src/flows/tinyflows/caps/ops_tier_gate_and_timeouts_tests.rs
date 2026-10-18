@@ -139,6 +139,7 @@ async fn composio_tool_call_blocks_under_readonly_tier() {
 /// under a read-only tier.
 #[tokio::test]
 async fn composio_read_action_allowed_under_readonly_tier() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     use crate::security::AutonomyLevel;
 
     let class = classify_composio_action_for_tier("TWITTER_RECENT_SEARCH").await;
@@ -179,6 +180,7 @@ async fn composio_read_action_allowed_under_readonly_tier() {
 /// reads included).
 #[tokio::test]
 async fn composio_read_action_does_not_prompt_under_supervised_tier() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     use crate::security::AutonomyLevel;
 
     let class = classify_composio_action_for_tier("TWITTER_RECENT_SEARCH").await;

@@ -73,6 +73,7 @@ fn cancel_flow_run_is_external_effect_so_the_middleware_parks_it() {
 
 #[tokio::test]
 async fn edit_workflow_by_flow_id_seeds_a_retrievable_draft_and_marks_unpersisted() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     // A saved flow to edit — editing it must NOT write onto the flow (the WS2
@@ -148,6 +149,7 @@ async fn dry_run_workflow_by_flow_id_runs_the_saved_flow_graph() {
 
 #[tokio::test]
 async fn validate_workflow_by_draft_id_checks_the_draft_graph() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     let draft = ops::flows_draft_create(
@@ -169,6 +171,7 @@ async fn validate_workflow_by_draft_id_checks_the_draft_graph() {
 
 #[tokio::test]
 async fn save_workflow_by_draft_id_persists_the_draft_graph_onto_the_flow() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     // A flow seeded with a bare 1-node graph.
@@ -202,6 +205,7 @@ async fn save_workflow_by_draft_id_persists_the_draft_graph_onto_the_flow() {
 
 #[tokio::test]
 async fn revise_workflow_proposal_is_marked_unpersisted() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = revise_workflow_tool(test_config(&tmp));
     let result = tool

@@ -224,6 +224,7 @@ async fn edit_workflow_preserves_non_engine_gate_edits_in_the_draft() {
 
 #[tokio::test]
 async fn edit_workflow_edits_a_saved_flow_by_id() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     // Create a saved flow to edit.
@@ -254,6 +255,7 @@ async fn edit_workflow_edits_a_saved_flow_by_id() {
 
 #[tokio::test]
 async fn validate_workflow_reports_ok_for_a_valid_graph() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = validate_workflow_tool(test_config(&tmp));
     let result = tool
@@ -303,6 +305,7 @@ async fn validate_workflow_requires_a_base() {
 
 #[tokio::test]
 async fn edit_workflow_edits_a_draft_and_writes_back() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     use tinyflows_catalog::DraftOrigin;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
@@ -409,6 +412,7 @@ async fn edit_workflow_surfaces_draft_write_back_failure() {
 
 #[tokio::test]
 async fn create_workflow_creates_a_disabled_flow() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     let tool = create_workflow_tool(config.clone());

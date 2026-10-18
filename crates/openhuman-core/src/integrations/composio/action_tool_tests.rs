@@ -213,6 +213,7 @@ fn sandbox_unset_leaves_per_action_execute_to_downstream() {
 #[test]
 fn contract_gate_surfaces_full_contract_then_proceeds_on_retry() {
     run_with_big_stack(|| async {
+        let _module = super::super::module_client::module_guard().await;
         // The FIRST per-action execute this turn must return the action's FULL
         // live contract (so the model composes a well-formed query) instead of
         // the thin spawn-time schema; the retry then proceeds to real dispatch.

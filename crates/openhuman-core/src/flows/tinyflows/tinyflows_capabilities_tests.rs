@@ -206,6 +206,7 @@ async fn tools_invoke_rejects_a_prefix_less_slug() {
 
 #[tokio::test]
 async fn tools_invoke_does_not_reject_a_known_curated_slug_at_the_curation_gate() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // A real curated action for a known toolkit must clear the curation
     // gate — it may still fail further downstream (no composio client
     // configured in this test environment), but that failure must NOT be
@@ -328,6 +329,7 @@ async fn preflight_fails_before_dispatch_naming_the_missing_field() {
 
 #[tokio::test]
 async fn preflight_skips_when_no_schema_is_available() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     // A slug whose toolkit is unknown to the curation catalog has no schema
@@ -339,6 +341,7 @@ async fn preflight_skips_when_no_schema_is_available() {
 
 #[tokio::test]
 async fn preflight_applies_static_arg_rules_without_a_catalog() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     // No catalog seeding for this slug — `GMAIL_ADD_LABEL_TO_EMAIL` is never

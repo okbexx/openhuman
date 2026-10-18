@@ -22,18 +22,15 @@ async fn plan_exit_does_not_flip_while_a_review_is_parked() {
         tinyagents_harness::middleware::RunMode::Plan,
     );
     let gate = crate::agent::plan_review::gate::global();
-    let parked = tokio::spawn(async move {
-        gate.request_review(
-            Some(thread_id.to_string()),
-            None,
-            "Plan".into(),
-            vec!["step".into()],
-            None,
-        )
-        .await
-    });
-    // Let the review register as parked before racing plan_exit against it.
-    tokio::time::sleep(std::time::Duration::from_millis(20)).await;
+    let parked = gate.request_review(
+        Some(thread_id.to_string()),
+        None,
+        "Plan".into(),
+        vec!["step".into()],
+        None,
+    );
+    tokio::pin!(parked);
+    assert!(futures::poll!(parked.as_mut()).is_pending());
 
     let tool = PlanExitTool::new();
     let ctx = ThreadContext(thread_id);
@@ -59,7 +56,7 @@ async fn plan_exit_does_not_flip_while_a_review_is_parked() {
     // bookkeeping don't leak past this test.
     assert!(crate::agent::plan_review::gate::global()
         .decide_by_thread(thread_id, PlanReviewResolution::Approve));
-    let resolution = parked.await.unwrap();
+    let resolution = parked.await;
     assert_eq!(resolution, PlanReviewResolution::Approve);
 
     // Now that the review is resolved (no longer parked), plan_exit flips.

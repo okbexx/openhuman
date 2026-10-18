@@ -193,6 +193,7 @@ async fn inference_gate_reports_signed_out_for_dynamic_agent_ref_only_graph() {
 
 #[tokio::test]
 async fn proposal_includes_inference_status_for_agent_graph() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // `build_builder_proposal`'s payload carries the same inference-readiness
     // evaluation, ADVISORY only (B45 design correction), so the UI can render
     // provider-connectivity state alongside the built workflow. This pins the
@@ -236,6 +237,7 @@ async fn proposal_includes_inference_status_for_agent_graph() {
 
 #[tokio::test]
 async fn proposal_omits_inference_status_for_tool_call_only_graph() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // A graph with no `agent` node has nothing for this check to evaluate —
     // the field must be absent entirely, never a meaningless "ready".
     let tmp = TempDir::new().unwrap();

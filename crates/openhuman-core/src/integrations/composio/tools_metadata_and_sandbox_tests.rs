@@ -421,6 +421,7 @@ async fn sandbox_read_only_blocks_admin_scope_action() {
 
 #[tokio::test]
 async fn sandbox_read_only_passes_through_read_scope_actions_to_downstream_gates() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // Read-scoped slugs should survive the sandbox gate; they may
     // still be rejected by the user's scope-pref check or the
     // curated-catalog check downstream, but the sandbox layer itself
@@ -459,6 +460,7 @@ async fn sandbox_read_only_passes_through_read_scope_actions_to_downstream_gates
 
 #[tokio::test]
 async fn sandbox_unset_leaves_all_scopes_to_downstream_gates() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // Without an explicit agent context there is no agent-specific mode; the tool
     // returns `None` and the gate becomes a no-op (backward
     // compatible — this is the CLI / JSON-RPC / unit-test path).
@@ -493,6 +495,7 @@ async fn sandbox_unset_leaves_all_scopes_to_downstream_gates() {
 
 #[tokio::test]
 async fn sandbox_sandboxed_mode_does_not_trigger_readonly_gate() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // `SandboxMode::Sandboxed` is a privilege-drop / filesystem
     // restriction — orthogonal to write permissions on external
     // APIs. The gate only fires for `ReadOnly`, by design.

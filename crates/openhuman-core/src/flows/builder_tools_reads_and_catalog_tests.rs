@@ -5,6 +5,7 @@ use crate::flows::builder_tools::catalog_search::search_catalog;
 
 #[tokio::test]
 async fn revise_workflow_validates_and_returns_revision_proposal() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = revise_workflow_tool(test_config(&tmp));
 
@@ -28,6 +29,7 @@ async fn revise_workflow_validates_and_returns_revision_proposal() {
 
 #[tokio::test]
 async fn revise_workflow_omitted_require_approval_defaults_true() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = revise_workflow_tool(test_config(&tmp));
 
@@ -43,6 +45,7 @@ async fn revise_workflow_omitted_require_approval_defaults_true() {
 
 #[tokio::test]
 async fn revise_workflow_explicit_require_approval_true_is_respected() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = revise_workflow_tool(test_config(&tmp));
 
@@ -140,6 +143,7 @@ async fn get_flow_run_missing_id_is_error() {
 
 #[tokio::test]
 async fn list_flow_connections_is_read_only() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = ListFlowConnectionsTool::new(test_config(&tmp));
     assert_eq!(tool.permission_level(), PermissionLevel::None);

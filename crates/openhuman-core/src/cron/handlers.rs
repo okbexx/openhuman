@@ -204,6 +204,13 @@ pub fn kind_handler(kind: &JobType) -> Option<Arc<dyn JobKindHandler>> {
     read().kinds.get(kind.as_str()).cloned()
 }
 
+/// Hold across a test's read, replacement and restoration of kind handlers.
+#[cfg(test)]
+pub(super) async fn kind_registry_test_guard() -> tokio::sync::MutexGuard<'static, ()> {
+    static GUARD: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+    GUARD.lock().await
+}
+
 /// Register the handler of system job `name`, replacing any earlier one.
 pub(crate) fn register_system(name: &str, handler: SystemHandler) {
     write().systems.insert(name.to_string(), handler);

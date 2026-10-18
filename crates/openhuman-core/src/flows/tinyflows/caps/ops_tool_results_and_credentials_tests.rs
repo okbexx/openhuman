@@ -201,6 +201,7 @@ async fn unknown_toolkit_still_rejects() {
 /// The exact same slug rejects above without a connection.
 #[tokio::test]
 async fn connected_uncatalogued_toolkit_now_passes() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     use crate::integrations::composio::contract::catalog_for_toolkit;
     assert!(catalog_for_toolkit("flowstestkit").is_none());
 
@@ -252,6 +253,7 @@ async fn connected_uncatalogued_toolkit_now_passes() {
 /// which passes.
 #[tokio::test]
 async fn expired_live_catalog_entry_is_treated_as_a_cache_miss() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     use crate::integrations::composio::contract::catalog_for_toolkit;
     assert!(catalog_for_toolkit("flowsexpiredkit").is_none());
 

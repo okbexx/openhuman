@@ -5,6 +5,7 @@ use super::*;
 /// Composio backend to prove the probe can't perform a real mutation.
 #[tokio::test]
 async fn get_tool_output_sample_refuses_a_write_scope_action() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = GetToolOutputSampleTool::new(test_config(&tmp));
     let result = tool
@@ -25,6 +26,7 @@ async fn get_tool_output_sample_refuses_a_write_scope_action() {
 /// against an unconnected toolkit is refused without ever reaching a client.
 #[tokio::test]
 async fn get_tool_output_sample_refuses_an_unconnected_toolkit() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = GetToolOutputSampleTool::new(test_config(&tmp));
     let result = tool

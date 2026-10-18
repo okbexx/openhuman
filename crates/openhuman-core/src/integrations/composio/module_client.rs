@@ -312,6 +312,10 @@ pub async fn call_bare<Reply: serde::de::DeserializeOwned>(
 pub(crate) static MODULE_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
 /// Take the module lock for the rest of the test.
+///
+/// This includes signed-out reconciliation, scope/capability reads and live
+/// catalog misses, even when the caller expects no backend request. Acquire it
+/// before the integrations cache and process-environment test locks.
 #[cfg(test)]
 pub(crate) async fn module_guard() -> tokio::sync::MutexGuard<'static, ()> {
     // Tests that take the module drive its backend mode against a local mock;

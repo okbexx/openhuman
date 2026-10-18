@@ -68,6 +68,7 @@ async fn validate_tool_contracts_skips_expression_derived_and_native_slugs() {
 
 #[tokio::test]
 async fn validate_tool_contracts_skips_rather_than_rejects_when_the_catalog_is_unreachable() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // No seed for this toolkit and no live backend configured — the fetch
     // fails, and the node must be SKIPPED (never false-rejected).
     let config = Config::default();

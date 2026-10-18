@@ -49,6 +49,7 @@ async fn save_rejects_an_empty_toolkit() {
 /// so the migration retries).
 #[tokio::test]
 async fn a_legacy_pref_either_reaches_the_module_or_stays_stored() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let dir = tempfile::tempdir().unwrap();
     let config = config_in(&dir);
     let legacy = serde_json::json!({"github":{"read":true,"write":false,"admin":true}});

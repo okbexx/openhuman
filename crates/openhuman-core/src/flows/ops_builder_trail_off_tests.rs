@@ -85,6 +85,7 @@ async fn update_records_revisions_and_rollback_restores() {
 
 #[tokio::test]
 async fn compute_required_connections_flags_missing_composio_toolkits() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     // A tool_call to a Gmail action (no connections in a fresh workspace).

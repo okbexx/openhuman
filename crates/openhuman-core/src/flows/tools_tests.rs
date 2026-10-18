@@ -45,6 +45,7 @@ fn valid_graph() -> Value {
 
 #[tokio::test]
 async fn valid_graph_returns_workflow_proposal_success() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = ProposeWorkflowTool::new(test_config(&tmp));
 
@@ -116,6 +117,7 @@ async fn missing_graph_is_an_error() {
 
 #[tokio::test]
 async fn omitted_require_approval_defaults_true_in_result() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = ProposeWorkflowTool::new(test_config(&tmp));
 
@@ -130,6 +132,7 @@ async fn omitted_require_approval_defaults_true_in_result() {
 
 #[tokio::test]
 async fn explicit_require_approval_false_is_respected() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = ProposeWorkflowTool::new(test_config(&tmp));
 
@@ -144,6 +147,7 @@ async fn explicit_require_approval_false_is_respected() {
 
 #[tokio::test]
 async fn explicit_require_approval_true_is_respected() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = ProposeWorkflowTool::new(test_config(&tmp));
 
@@ -158,6 +162,7 @@ async fn explicit_require_approval_true_is_respected() {
 
 #[tokio::test]
 async fn summary_step_count_and_kinds_are_correct() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = ProposeWorkflowTool::new(test_config(&tmp));
 
@@ -180,6 +185,7 @@ async fn summary_step_count_and_kinds_are_correct() {
 
 #[tokio::test]
 async fn summary_trigger_describes_schedule() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = ProposeWorkflowTool::new(test_config(&tmp));
 
@@ -194,6 +200,7 @@ async fn summary_trigger_describes_schedule() {
 
 #[tokio::test]
 async fn summary_trigger_describes_manual_default() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = ProposeWorkflowTool::new(test_config(&tmp));
 
@@ -214,6 +221,7 @@ async fn summary_trigger_describes_manual_default() {
 
 #[tokio::test]
 async fn summary_trigger_describes_app_event() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = ProposeWorkflowTool::new(test_config(&tmp));
 

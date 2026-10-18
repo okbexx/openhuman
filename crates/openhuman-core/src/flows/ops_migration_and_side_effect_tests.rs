@@ -332,6 +332,7 @@ async fn flows_update_does_not_force_require_approval_on_readonly_graph() {
 
 #[tokio::test]
 async fn strict_gate_passes_a_valid_graph_and_rejects_a_structurally_invalid_one() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let config = Config::default();
     // A trigger-only graph is structurally valid and has no outbound gates.
     assert!(strict_gate(

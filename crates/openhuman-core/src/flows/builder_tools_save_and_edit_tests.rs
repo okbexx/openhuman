@@ -162,6 +162,7 @@ async fn dry_run_no_routing_divergence_warning_when_every_node_executes() {
 /// fallback for any caller that doesn't also run `validate_tool_contracts`.
 #[tokio::test]
 async fn revise_workflow_rejects_a_missing_required_composio_arg() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     seed_live_catalog_cache("gmail", vec![seeded_gmail_send_contract()]);
 
     let tmp = TempDir::new().unwrap();
@@ -213,6 +214,7 @@ async fn save_workflow_missing_flow_id_is_error() {
 
 #[tokio::test]
 async fn save_workflow_unknown_flow_is_error() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = save_workflow_tool(test_config(&tmp));
 
@@ -226,6 +228,7 @@ async fn save_workflow_unknown_flow_is_error() {
 
 #[tokio::test]
 async fn save_workflow_persists_graph_and_name_onto_existing_flow() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     let flow_id = seed_flow(&config, "Blank flow").await;
@@ -283,6 +286,7 @@ async fn save_workflow_rejects_invalid_graph_and_leaves_flow_intact() {
 
 #[tokio::test]
 async fn save_workflow_surfaces_auto_disarm_warning_on_manual_to_automatic_transition() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // Regression for #4889 + the stale-docs issue that motivated this test:
     // `flows_update` auto-disables a flow whenever its trigger transitions
     // from manual to automatic on an already-enabled flow, but `save_workflow`
@@ -368,6 +372,7 @@ async fn save_workflow_rejects_agent_binding_missing_declared_field() {
 
 #[tokio::test]
 async fn save_workflow_accepts_correctly_schemad_graph() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let config = test_config(&tmp);
     let flow_id = seed_flow(&config, "Blank flow").await;
@@ -463,6 +468,7 @@ async fn get_node_kind_contract_tool_returns_contract_and_rejects_unknown() {
 
 #[tokio::test]
 async fn edit_workflow_applies_ops_to_inline_graph_and_returns_proposal() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = edit_workflow_tool(test_config(&tmp));
 
@@ -490,6 +496,7 @@ async fn edit_workflow_applies_ops_to_inline_graph_and_returns_proposal() {
 
 #[tokio::test]
 async fn edit_workflow_update_node_config_merge_patches() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = edit_workflow_tool(test_config(&tmp));
 
@@ -607,6 +614,7 @@ async fn edit_workflow_add_node_exists_carries_ordering_hint() {
 
 #[tokio::test]
 async fn edit_workflow_accepts_node_id_aliases_end_to_end() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     let tmp = TempDir::new().unwrap();
     let tool = edit_workflow_tool(test_config(&tmp));
     // A valid ops array using the `node_id` alias (the natural agent guess)

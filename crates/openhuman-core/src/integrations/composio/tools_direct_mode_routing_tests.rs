@@ -125,6 +125,7 @@ async fn list_tools_in_direct_mode_returns_empty_without_hitting_backend() {
 
 #[tokio::test]
 async fn execute_tool_per_call_factory_means_no_baked_client() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // Regression check for the structural fix: `ComposioExecuteTool::new`
     // takes `Arc<Config>` rather than `ComposioClient`, so a user
     // toggling `composio.mode` mid-session is observed on the very next

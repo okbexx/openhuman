@@ -188,6 +188,9 @@ impl tinymemory_api::MemoryEngine for HeldEngine {
 #[tokio::test]
 async fn held_engine_writes_do_not_delay_acknowledgements_or_hold_the_producer_lock() {
     use tinytools::Tool;
+    // The engine stays blocked until both acknowledgements arrive. This
+    // deadline detects a stuck producer, not the machine's I/O latency.
+    const COORDINATION_TIMEOUT: Duration = Duration::from_secs(30);
     let tmp = tempfile::tempdir().unwrap();
     let config = config_in(&tmp);
     let engine = Arc::new(HeldEngine {
@@ -199,18 +202,18 @@ async fn held_engine_writes_do_not_delay_acknowledgements_or_hold_the_producer_l
     crate::memory::engine::install_test_engine(&config.workspace_dir, engine.clone());
     let tool = crate::memory::MemoryTool::new(Arc::new(config.clone()));
     let first = tokio::time::timeout(
-        Duration::from_secs(2),
+        COORDINATION_TIMEOUT,
         tool.execute(json!({"action":"learn","text":"First fact"})),
     )
     .await
     .unwrap()
     .unwrap();
     assert!(!first.is_error);
-    tokio::time::timeout(Duration::from_secs(2), engine.entered.notified())
+    tokio::time::timeout(COORDINATION_TIMEOUT, engine.entered.notified())
         .await
         .unwrap();
     let second = tokio::time::timeout(
-        Duration::from_secs(2),
+        COORDINATION_TIMEOUT,
         tool.execute(json!({"action":"learn","text":"Second fact"})),
     )
     .await

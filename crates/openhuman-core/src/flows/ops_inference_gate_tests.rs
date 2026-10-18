@@ -34,6 +34,7 @@ async fn inference_gate_skips_when_no_agent_nodes() {
 
 #[tokio::test]
 async fn run_builder_gates_does_not_reject_when_signed_out() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // Authoring is never blocked by inference readiness (design correction,
     // B45): a signed-out session must NOT appear among `run_builder_gates`'
     // errors for an otherwise-valid agent-node graph.
@@ -61,6 +62,7 @@ async fn run_builder_gates_does_not_reject_when_signed_out() {
 
 #[tokio::test]
 async fn proposal_surfaces_signed_out_inference_status() {
+    let _module = crate::integrations::composio::module_client::module_guard().await;
     // The proposal still WARNS about the signed-out state (advisory, never a
     // rejection) so the UI can render a "sign in" nudge alongside the built
     // workflow.
